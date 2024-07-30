@@ -1,0 +1,201 @@
+.holiday *{
+    background-color: #55b7c0; 
+    border-radius: 50%;
+  }
+  
+  .absent *{
+    background-color: #db2424; 
+    border-radius: 50%;
+  }
+  
+  .present *{
+    background-color: #2bd141; 
+    border-radius: 50%;
+    
+  }
+  
+  .paid-leave *{
+    background-color: #f8ff9c; 
+    border-radius: 50%;
+  }
+  .custom-calendar {
+    width: 100%; 
+   
+    margin: 0 auto; 
+    border:none;
+    font-size: 12.5px;
+    color: rgba(0, 0, 0, 0.802);
+    font-family: 'Bodoni Moda', serif;
+  }
+  .custom-calendar *{
+    padding: 2px;
+    margin: 0;
+    /* border: 1px solid orange; */ 
+  }
+  .custom-calendar span{
+    /* border: 1px solid orange; */
+    width: 100%;
+    font-weight: bold;
+    color: orange;
+    z-index: 1;
+  }
+
+  .react-calendar__tile {
+    border-radius: 50%; 
+    /* background-color: #4e0707; */  
+    cursor: pointer;  
+    padding: 0px 0px;
+    line-height: 20px;   
+  }
+  /* .react-calendar__tile {
+    background-color: red;
+  } */
+  .react-calendar__tile--now {
+    background: orange;
+    /* border-radius: 6px; */
+    font-weight: bold;
+    color: white;
+    border-radius: 50%;
+   }
+  
+
+  .react-calendar__navigation {
+  padding: 0;
+  margin: 0;
+  height: auto;
+  }
+  .react-calendar__navigation button {
+   
+    padding: 0;
+    margin-top: 0;
+   }
+  .react-calendar__navigation__arrow {
+    display: none;
+  }
+  .react-calendar__month-view__weekdays {
+ 
+  }
+  .react-calendar__month-view__weekdays * {
+    text-decoration: none;
+  }
+
+  
+
+  .tooltip {
+    color: #4e0707; 
+    text-align: center;
+    border-radius: 5px;
+   position: absolute;
+   font-size: 1px;
+ 
+  }
+  
+
+  .react-calendar__tile:hover .tooltip {
+    visibility: visible;
+  }
+  .custom-calendar button{
+    width: 2px; 
+    /* border: 1px solid black; */
+  }
+  .custom-calendar button *{
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  /* .custom-calendar button *{
+    background-color: green;
+  } */
+
+
+  /* .holiday {
+    background-color: #55b7c0; 
+  }
+  
+  .absent {
+    background-color: #db2424; 
+  }
+  
+  .present {
+    background-color: #2bd141; 
+  }
+  
+  .paid-leave {
+    background-color: #f8ff9c; 
+  }
+  
+  .custom-calendar {
+    width: 100%; 
+    margin: 0 auto; 
+    border: none;
+    font-size: 12.5px;
+    color: rgba(0, 0, 0, 0.802);
+    font-family: 'Bodoni Moda', serif;
+  }
+  
+  .custom-calendar * {
+    padding: .5px;
+    margin: 0;
+  }
+  
+  .custom-calendar span {
+    width: 100%;
+    font-weight: bold;
+    color: orange;
+    z-index: 1;
+  }
+  
+  .react-calendar__tile {
+    border-radius: 50%; 
+    cursor: pointer;
+    padding: 0px;
+    line-height: 20px;
+  }
+  
+  .react-calendar__tile--now {
+    background: orange;
+    font-weight: bold;
+    color: white;
+  }
+  
+  .react-calendar__navigation {
+    padding: 0;
+    margin: 0;
+    height: auto;
+  }
+  
+  .react-calendar__navigation button {
+    padding: 0;
+    margin-top: 0;
+  }
+  
+  .react-calendar__navigation__arrow {
+    display: none;
+  }
+  
+  .react-calendar__month-view__weekdays {
+  }
+  
+  .react-calendar__month-view__weekdays * {
+    text-decoration: none;
+  }
+  
+  .tooltip {
+    color: #4e0707; 
+    text-align: center;
+    border-radius: 5px;
+    position: absolute;
+    font-size: 1px;
+  }
+  
+  .react-calendar__tile:hover .tooltip {
+    visibility: visible;
+  }
+  
+  .custom-calendar button {
+    margin: 3px;
+    border-radius: 50%;
+    border: 1px solid black;
+    background-color: #747a1d;
+    color: #4e0707;
+  }
+   */
