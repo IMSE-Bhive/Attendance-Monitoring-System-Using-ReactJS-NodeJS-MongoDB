@@ -14,14 +14,17 @@ const paidLeaveLength = leaveData.paid_leave ? leaveData.paid_leave.length : 0;
 const unpaidLeaveLength = leaveData.unpaid_leave ? leaveData.unpaid_leave.length : 0;
 
 let completed
+let total
 if(type==='balance'){
     console.log(leaveData);
-   completed = leaveData.balance_leave ? leaveData.balance_leave : 0
+   completed = leaveData?.balance_leave ?? 0
+   total =  24;
 }
 else{
-    completed = paidLeaveLength + unpaidLeaveLength;
+    completed = leaveData?.this_month_paidLeave?.length;
+    total =  2+ leaveData?.earnedLeave
 }
-const total =  24;
+
 const percentage = total > 0 ? (completed / total) * 100 : 0;
 
 

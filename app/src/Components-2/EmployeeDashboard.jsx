@@ -9,9 +9,9 @@ import CountdownTimer from './CountdownTimer';
 import LineProgressBar from './LineProgressBar';
 import LeaveProgressBar from './LeaveProgressBar';
 import { AppContext } from '../context/AppContext';
-import LeaveDashboard from './LeaveDashboard';
+
 import HolidaysList from './HolidaysList';
-import LeaveStatus from './LeaveStatus';
+
 import CompanyPolicy from './CompanyPolicy';
 import { useLocation, useNavigate } from 'react-router-dom';
 import EmployeeList from './EmployeeList';
@@ -19,6 +19,8 @@ import EmployeeDetails from './EmployeeDetails';
 import DefaultEmp from './DefaultEmp';
 import Report from './Report';
 import TicketDashboard from './TicketDashboard';
+import Meeting from './Meeting';
+import ApproveLeaveDashboard from './ApproveLeaveDashboard';
 
 function EmployeeDashboard() {
     const navigate = useNavigate()
@@ -54,8 +56,9 @@ function EmployeeDashboard() {
     const [account_section_class, setAccountSectionClass] = useState('hidden')
     const [notification_class, setNotificationClass] = useState('hidden')
 
-    const [displayValue, setDisplayValue] = useState(['visible', 'hidden', 'hidden', 'hidden', 'hidden', 'hidden'])
-    //const [displayValue, setDisplayValue] = useState([ 'hidden', 'hidden','visible', 'hidden', 'hidden', 'hidden'])
+    const [displayValue, setDisplayValue] = useState(['visible', 'hidden', 'hidden', 'hidden', 'hidden', 'hidden','hidden'])
+    //const [displayValue, setDisplayValue] = useState([ 'hidden', 'hidden', 'hidden', 'hidden', 'hidden','hidden','hidden', 'visible'])
+    const [refresh, setRefresh] = useState(true)
 
     const sideBarFun = () => {
         setSideBarClass(sideBarStatus ? 'side-bar hidden' : 'side-bar visible');
@@ -109,7 +112,7 @@ function EmployeeDashboard() {
             .catch(err => console.log(err));
 
 
-    }, [state]);
+    }, [state, refresh]);
 
     // useEffect(()=>{
 
@@ -117,10 +120,10 @@ function EmployeeDashboard() {
 
 
     const [currentTime, setCurrentTime] = useState('');
-    let date = new Date();
-    let month = (date.getMonth() + 1) < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1);
-    let currentDate = date.getFullYear() + '-' + month + '-' + date.getDate();
-
+    const date = new Date();
+    let monthDate = (date.getMonth() + 1).toString().padStart(2, '0');
+    let dayDate = date.getDate().toString().padStart(2, '0');
+    let currentDate = `${date.getFullYear()}-${monthDate}-${dayDate}`;
     // useEffect(() => {
     //     let date = new Date();
     //     let hour = date.getHours();
@@ -319,28 +322,106 @@ function EmployeeDashboard() {
     const [selectedUser, setSelectedUser] = useState({})
     const [logFlag, setLogFlag] = useState(false);
     const [emp_table_body_class, setEmp_table_body] = useState('emp-table_body')
+    const [newName, setNewName] = useState('')
+    const [newEmail, setNewEmail] = useState('')
+    const [newPassword, setNewPassword] = useState('')
+    const [newCategory, setNewCategory] = useState('')
+    const [newDesignation, setNewDesignation] = useState('')
+    const [createEditBtn, setcreateEditBtn] = useState('')
+
 
     const selectUserFun = (item) => {
         setSelectedUser(item);
         console.log(selectedUser);
-        handleClick(5)
+        if(selectedUser.emp_id===item.emp_id){
+            handleClick(5)
+        }
         // setLogFlag(true);  
     }
+    const clearDetails = () => {
+        setNewName('')
+        setNewEmail('')
+        setNewPassword('')
+        setNewCategory('')
+        setNewDesignation('')
+    }
 
-    const createFun=()=>{
+    const createFun = async (e) => {
+
+        e.preventDefault()
+        if (newName !== '' || newEmail !== '' || newPassword !== '' || newCategory !== '' || newDesignation !== '') {
+            alert('Please fill all Details')
+        } else {
+            try {
+                const result = await axios.post('http://localhost:8081/createUser', { emp_id: newEmail, name: newName, password: newPassword, category: newCategory, designation: newDesignation })
+                console.log(result.data)
+                alert(newName + " details Created")
+                setRefresh(!refresh)
+                clearDetails()
+                const result2 = await axios.post('http://localhost:8081/createLeave', { emp_id: newEmail, total_leave: 0, balance_leave: 24 })
+            } catch (error) {
+                console.error("Error creating user or leave details:", error);
+                alert("An error occurred while creating user or leave details. Please try again.");
+            }
+        }
 
     }
+
+    const editFun = (item) => {
+        setNewName(item.name)
+        setNewEmail(item.emp_id)
+        setNewPassword(item.password)
+        setNewCategory(item.category)
+        setNewDesignation(item.designation)
+    }
+    const updateEditFun = () => {
+
+    }
+
     // useEffect(()=>{
     //     if(logFlag){
     //         console.log(selectedUser);
     //         handleClick(5)
     //     }
     // },[selectedUser])
+
+
+    useEffect(() => {
+        if (state.length === 0) return;
+        async function fetchNotifications() {
+            try {
+                const response = await fetch(`http://localhost:8081/notifications`);
+                const data = await response.json();
+                setNotifications(data);
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+            }
+        }
+        fetchNotifications();
+    }, [currentTime]);
+
+    const [notifications, setNotifications] = useState([]);
+
+
+    useEffect(() => {
+        if (state.length === 0) return;
+        async function fetchNotifications() {
+            try {
+                const response = await fetch(`http://localhost:8081/notifications`);
+                const data = await response.json();
+                setNotifications(data);
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+            }
+        }
+
+        fetchNotifications();
+    }, [currentTime]);
     return (
         <>
             <div className="emp-dashboard">
                 <div className="header">
-                    <div className="img-div">
+                    <div className="img-div" style={{backgroundColor:side_bar_class==='side-bar visible'?'#1e81ea':'transparent'}}>
                         <img src={logo} alt="" />
                     </div>
                     <div className="header-content">
@@ -352,8 +433,8 @@ function EmployeeDashboard() {
                                 <i className="fa-solid fa-magnifying-glass"></i>
                             </div>
 
-                            <i className="fa-regular fa-bell"></i>
-                            <i className="fa-regular fa-comment" onClick={e => {
+                            {/* <i className="fa-regular fa-comment"></i> */}
+                            <i className="fa-regular fa-bell" onClick={e => {
                                 if (account_section_class !== 'hidden') {
                                     setAccountSectionClass('hidden')
                                 }
@@ -364,14 +445,17 @@ function EmployeeDashboard() {
                                     <b style={{ fontSize: '20px' }}> Notification</b>
                                 </div>
                                 <div className="notification-content" style={{ fontSize: '12px' }}>
-                                    {empLeave.map((item) => (item.status !== 'Pending' ?
-                                        <div style={{ display: 'grid', gridTemplateColumns: '170px 40px', gap: '20px', padding: '10px', borderBottom: '1px solid rgba(0, 0, 0, 0.187' }}>
-                                            <p>
-                                                <b>HR</b> has {item.status} your leave Request
-
-                                            </p>
-                                            <p>{item.fromDate.slice(5)}</p>
-                                        </div> : ''))}
+                                {
+                                            notifications?.filter(f=>f.to==='admin').reverse().map(item=>(
+                                                <div style={{ display: 'grid', gridTemplateColumns: '170px 40px', gap: '20px', padding: '10px', borderBottom: '1px solid rgba(0, 0, 0, 0.187' }}>
+                                                <p>
+                                                    {item.msg}
+    
+                                                </p>
+                                                <p>{item.createdAt.split('T')[0].slice(5)}</p>
+                                            </div>
+                                            ))
+                                        }
                                 </div>
 
                             </div>
@@ -439,16 +523,22 @@ function EmployeeDashboard() {
                                         backgroundColor: selected === 2 ? '#ffffff' : 'transparent',
                                         color: selected === 2 ? '#1e85f1' : 'rgba(255, 255, 255, 0.854)'
                                     }}>Tickets</p>
+                                    <p onClick={() => handleClick(6)}
+                                    style={{
+                                        backgroundColor: selected === 6 ? '#ffffff' : 'transparent',
+                                        color: selected === 6 ? '#1e85f1' : 'rgba(255, 255, 255, 0.854)'
+                                    }}>Leave</p>
+                                    <p onClick={() => handleClick(4)}
+                                    style={{
+                                        backgroundColor: selected === 4 ? '#ffffff' : 'transparent',
+                                        color: selected === 4 ? '#1e85f1' : 'rgba(255, 255, 255, 0.854)'
+                                    }}>Meetings</p>
                                 <p onClick={() => handleClick(3)}
                                     style={{
                                         backgroundColor: selected === 3 ? '#ffffff' : 'transparent',
                                         color: selected === 3 ? '#1e85f1' : 'rgba(255, 255, 255, 0.854)'
                                     }}>Reports</p>
-                                <p onClick={() => handleClick(4)}
-                                    style={{
-                                        backgroundColor: selected === 4 ? '#ffffff' : 'transparent',
-                                        color: selected === 4 ? '#1e85f1' : 'rgba(255, 255, 255, 0.854)'
-                                    }}>Meetings</p>
+                                
                             </div>
                         </div>
                     </div>
@@ -465,9 +555,17 @@ function EmployeeDashboard() {
                             <div className="content-lable">
                                 <p><b>Employees</b></p>
                                 <p>Dashboard <span style={{ color: 'rgba(4, 4, 4, 0.439)' }}>/Employees</span></p>
-                                {emp_table_body_class!=='hidden' && <i class="fa-solid fa-plus" style={{ position: 'absolute', right: '1rem', marginTop: '-20px', fontSize: '30px' }}
-                                    onClick={() => { setEmp_table_body('hidden') }}></i>}
-                                {emp_table_body_class==='hidden' && <button  style={{ position: 'absolute', right: '1rem', marginTop: '-20px', fontSize: '15px' , padding:'3px 6px' }}>Back</button>}
+                                {emp_table_body_class !== 'hidden' && <i class="fa-solid fa-plus" style={{ position: 'absolute', right: '1rem', marginTop: '-20px', fontSize: '30px' }}
+                                    onClick={() => {
+                                        setcreateEditBtn('create')
+                                        setEmp_table_body('hidden');
+                                    }}></i>}
+                                {emp_table_body_class === 'hidden' &&
+                                    <button
+                                        style={{ position: 'absolute', right: '1rem', marginTop: '-20px', fontSize: '15px', padding: '3px 6px' }}
+                                        onClick={() => { setEmp_table_body('emp-table_body');
+                                                        clearDetails()
+                                         }}>Back</button>}
                             </div>
                             <div className={emp_table_body_class}>
                                 <table>
@@ -481,31 +579,42 @@ function EmployeeDashboard() {
                                     </thead>
                                     <tbody>
                                         {user?.sort((a, b) => a.name.localeCompare(b.name)).map(item => (
-                                            <tr key={item._id} onClick={e => {
-                                                selectUserFun(item)
-                                            }}>
-                                                <td>{item.name}</td>
+                                            <tr key={item._id} >
+                                                <td onClick={e => {
+                                                    selectUserFun(item)
+                                                }} style={{ cursor: 'pointer' }}>{item.name}</td>
                                                 <td>{item.emp_id}</td>
                                                 <td>{item.category}</td>
-                                                <td style={{ display: 'flex', justifyContent: 'space-between' }}><p>{item.designation}</p> <p>Edit</p> </td>
+                                                <td style={{ display: 'flex', justifyContent: 'space-between' }}><p>{item.designation}</p>
+
+                                                    <i class="fa-solid fa-pen-to-square" onClick={() => {
+                                                        setcreateEditBtn('edit')
+                                                        setEmp_table_body('hidden');
+                                                        editFun(item)
+                                                    }}></i>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
                             {
-                                emp_table_body_class==='hidden' && 
+                                emp_table_body_class === 'hidden' &&
                                 <div className="create">
-                                <p style={{fontSize:'20px', padding:'10px'}}>Creating new Employee</p>
-                                <div className="form">
+                                    {createEditBtn === 'create' && <p style={{ fontSize: '20px', padding: '10px' }}>Creating new Employee</p>}
+                                    {createEditBtn === 'edit' && <p style={{ fontSize: '20px', padding: '10px' }}>Updating Employee Details</p>}
+                                    <div className="form">
 
-                                    <form action=""  >
-                                        
-                                            <input type="text" placeholder='Name' /><br /><br />
-                                            <input type="email" placeholder='Email' /><br /><br />
-                                            <input type="password" placeholder='Create Password' /><br /><br />
-                                            <select  >
+                                        <form action=""  >
+
+                                            <input type="text" placeholder='Name' value={newName} onChange={e => setNewName(e.target.value)} /><br /><br />
+                                            {createEditBtn === 'create' && <><input type="email" placeholder='Email' value={newEmail} onChange={e => setNewEmail(e.target.value)} /> <br /> </>}
+                                            {createEditBtn === 'edit' && <p>{newEmail}</p>}
+                                            <br />
+                                            <input type="password" placeholder='Create Password' value={newPassword} onChange={(e) => setNewPassword(e.target.value)} /><br /><br />
+                                            <select value={newDesignation} onChange={(e) => setNewDesignation(e.target.value)} >
                                                 <option value="">Select Designation</option>
+                                                <option value="HR">HR</option>
                                                 <option value="Network Administrator">Network Administrator</option>
                                                 <option value="User Experience Designer">User Experience Designer</option>
                                                 <option value="Database Administrator">Database Administrator</option>
@@ -514,19 +623,21 @@ function EmployeeDashboard() {
                                                 <option value="Cloud Engineer">Cloud Engineer</option>
                                                 <option value="Testing Engineer">Testing Engineer</option>
                                             </select><br /><br />
-                                            <select  >
+                                            <select value={newCategory} onChange={(e) => setNewCategory(e.target.value)}>
                                                 <option value="">Select Designation</option>
                                                 <option value="Admin">Admin</option>
                                                 <option value="Employee">Employee</option>
                                                 <option value="Manager">Manager</option>
-                                                
+
                                             </select>
                                             <br /><br />
-                                        <div className='center'>
-                                            <button onClick={createFun}>create</button></div>
-                                    </form>
+                                            <div className='center'>
+                                                {createEditBtn === 'create' && <button onClick={createFun}>create</button>}
+                                                {createEditBtn === 'edit' && <button onClick={updateEditFun}>Edit</button>}
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
-                            </div>
                             }
                         </div>
 
@@ -549,14 +660,20 @@ function EmployeeDashboard() {
                             </div>
 
                             <CompanyPolicy /> */}
+                            <Meeting users={user} state={state} date={currentDate} />
                         </div>
                         <div className={displayValue[5]}>
                             <EmployeeDetails handleClick={handleClick} state={selectedUser} setSelectedUser={setSelectedUser} />
 
                             {/* <LeaveDashboard handleClick={handleClick}  state={state}/> */}
                         </div>
+                     
 
+                        <div className={displayValue[6]}>
+                           <ApproveLeaveDashboard users={user}/>
 
+                           
+                        </div>
 
 
                     </div>

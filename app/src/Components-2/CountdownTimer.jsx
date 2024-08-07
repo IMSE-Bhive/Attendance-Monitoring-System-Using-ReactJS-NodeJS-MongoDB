@@ -40,7 +40,7 @@ const CountdownTimer = ({ durationCompleted , path_color}) => {
         <div>
             <CircularProgressbar
                 value={percentage}
-                text={`${durationCompleted} `}
+                text={`${durationCompleted}hr `}
             
                 styles={buildStyles({
                     textColor: '#000',

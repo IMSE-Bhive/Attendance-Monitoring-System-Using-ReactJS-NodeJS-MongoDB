@@ -199,3 +199,30 @@
     color: #4e0707;
   }
    */
+
+   @media only screen and (max-width: 975px){
+    .custom-calendar {
+      width: 350px;
+    }
+   }
+
+   @media only screen and (max-width: 735px){
+    .custom-calendar {
+      width: 300px;
+    }
+   }
+   @media only screen and (max-width: 655px){
+    .custom-calendar {
+      width: 220px;
+    }
+   }
+   @media only screen and (max-width: 460px){
+    .custom-calendar {
+      width: 200px;
+    }
+   }
+   @media only screen and (max-width: 425px){
+    .custom-calendar {
+      width: 230px;
+    }
+   }

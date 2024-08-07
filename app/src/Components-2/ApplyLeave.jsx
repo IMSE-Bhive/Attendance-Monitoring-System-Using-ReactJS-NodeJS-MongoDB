@@ -6,36 +6,46 @@ function ApplyLeave({state,empLeave , handleClick, cDate}) {
     const [toDate, setToDate] = useState('')
     const [dayType, setDayType] = useState('')
     const [leaveType, setLeaveType] = useState('')
-    const [reason, setReason] = useState('')
+    const [remark, setRemark] = useState('')
     const [leaveStatus, setLeaveStatus] = useState([])
-    const submitFun=(e)=>{
-        e.preventDefault()
-        // alert("submit")
-        // console.log(fromDate);
-        // console.log(toDate);
-        // console.log(dayType);
-        // console.log(leaveType);
-        // console.log(reason);
-        // console.log(state);
-        console.log(cDate);
-       
-        if(fromDate!=='' || toDate!=='' || dayType!=='' || leaveType!=='' || reason!==''){
-            axios.post('http://localhost:8081/applyLeave', { emp_id:state.emp_id, fromDate, toDate, dayType, leaveType, reason, status: 'Pending',date:cDate })
-            .then((result) => {
-                console.log(result.data)
-                alert("Apply Successfully")
-                setFromDate('')
-                setToDate('')
-                setDayType('')
-                setLeaveType('')
-                setReason('')
-            })
-            .catch(err => console.log(err))
+    const submitFun = async (e) => {
+        e.preventDefault();
+      
+        // console.log(cDate);
+      
+        if (fromDate !== '' && toDate !== '' && dayType !== '' && leaveType !== '' && remark !== '') {
+          try {
+            const applyLeaveResult = await axios.post('http://localhost:8081/applyLeave', {
+              emp_id: state.emp_id,
+              fromDate,
+              toDate,
+              dayType,
+              leaveType,
+              remarks: remark,
+              status: 'Pending',
+              date: cDate,
+            });
+      
+            // console.log(applyLeaveResult.data); 
+            const msg = ` ${state.name } has applied for a leave request`;
+            await axios.post('http://localhost:8081/notifications', { emp_id: state.emp_id,name:state.name, msg ,to:'admin'});
+
+            alert('Apply Successfully');
+      
+            setFromDate('');
+            setToDate('');
+            setDayType('');
+            setLeaveType('');
+            setRemark('');
+      
+          } catch (error) {
+            console.error('Error applying for leave or sending notification:', error);
+          }
+        } else {
+          alert('Please fill all necessary details');
         }
-        else{
-            alert('Please fill all necessary details')
-        }
-    }
+      };
+      
     const cancelFun=(e)=>{
         e.preventDefault()
         alert("Leave Request is canceled")
@@ -43,18 +53,19 @@ function ApplyLeave({state,empLeave , handleClick, cDate}) {
         setToDate('')
         setDayType('')
         setLeaveType('')
-        setReason('')
+        setRemark('')
     }
   return (
     <>
         <div className="applyLeave">
             <div className="heading">
-            <button onClick={e=>handleClick(0)}>Back</button>
+            
                <h3> Apply leave</h3>
+               <button onClick={e=>handleClick(0)}>Back</button>
                
             </div>
             <div className="applyLeave-section">
-                    <p className='leave-remaining'>You have <span>{2 - (empLeave?.this_month_paidLeave?.length ?? 0)} leaves</span> and <span>{empLeave?.earnedLeave ?? 0}optional</span> leave in this month.</p>
+                    <p className='leave-remaining'>You have <span>{(2 - (empLeave?.this_month_paidLeave?.length )?? 0)} leaves</span> and <span>{empLeave?.earnedLeave ??0} optional</span> leave in this month.</p>
                     <form action="" >
                         <div className="type">
                             <div className="leaveType">
@@ -106,8 +117,8 @@ function ApplyLeave({state,empLeave , handleClick, cDate}) {
                                 
                         </div> */}
                         <div className='reason'>
-                            <label><b>Reason:</b> </label><br />
-                            <textarea name="" value={reason} onChange={e => setReason(e.target.value)}></textarea>
+                            <label><b>Remark:</b> </label><br />
+                            <textarea name="" value={remark} onChange={e => setRemark(e.target.value)}></textarea>
                         </div>
                         <button onClick={cancelFun}>Cancel</button>
                         <input type="submit" onClick={submitFun}/>

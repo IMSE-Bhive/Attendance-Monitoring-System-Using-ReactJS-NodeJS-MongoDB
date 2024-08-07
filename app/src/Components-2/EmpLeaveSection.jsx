@@ -37,7 +37,7 @@ function EmpLeaveSection({ leaveCollection, leaveStatus}) {
             </div>
             <div className='this-month'>
               <p>Leave balance in this month</p>
-              <h3>0/2</h3>
+              <h3>{leaveCollection?.this_month_paidLeave?.length}/{2 + leaveCollection.earnedLeave}</h3>
 
 
             </div>

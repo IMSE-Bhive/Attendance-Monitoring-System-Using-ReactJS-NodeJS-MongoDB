@@ -15,6 +15,10 @@ import EmpLeaveSection from './EmpLeaveSection'
 import Policy from './Policy'
 import ApplyLeave from './ApplyLeave'
 import ApplyTicket from './ApplyTicket'
+import io from 'socket.io-client';
+
+
+
 function LandingDashboard() {
     const navigate = useNavigate()
     const location = useLocation()
@@ -160,9 +164,10 @@ function LandingDashboard() {
 
     const [currentTime, setCurrentTime] = useState('');
     // const[currentDate, setCurrentDate] = useState('')
-    let date = new Date();
-    let month = (date.getMonth() + 1) < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1);
-    let currentDate = date.getFullYear() + '-' + month + '-' + date.getDate();
+    const date = new Date();
+    let monthDate = (date.getMonth() + 1).toString().padStart(2, '0');
+    let dayDate = date.getDate().toString().padStart(2, '0');
+    let currentDate = `${date.getFullYear()}-${monthDate}-${dayDate}`;
 
     // useEffect(() => {
     //     let date = new Date();
@@ -192,7 +197,7 @@ function LandingDashboard() {
             console.log(attendance.length);
             const recent = attendance[0];
 
-  
+
             if (currentDate === recent.date) {
                 setSwipeInTime(recent.login);
                 setSwipeOutTime(recent.logout);
@@ -288,7 +293,7 @@ function LandingDashboard() {
     }
 
     const updateLogout = () => {
-        axios.put('http://localhost:8081/updateLogout', { emp_id: state.emp_id, date: currentDate, logout: currentTime, duration: duration, overTime:overTime })
+        axios.put('http://localhost:8081/updateLogout', { emp_id: state.emp_id, date: currentDate, logout: currentTime, duration: duration, overTime: overTime })
             .then((result) => {
                 console.log(result.data)
                 alert("Today you done a Great Job...")
@@ -328,7 +333,7 @@ function LandingDashboard() {
         const currentMeridiem = currentTimeToUse.split(' ')[1];
 
         const loginDate = new Date();
-        loginDate.setHours(loginMeridiem === 'PM' && loginHour !== 12 ? loginHour + 12 : (loginHour === 12 && loginMeridiem==='AM' ? 0 : loginHour));
+        loginDate.setHours(loginMeridiem === 'PM' && loginHour !== 12 ? loginHour + 12 : (loginHour === 12 && loginMeridiem === 'AM' ? 0 : loginHour));
         loginDate.setMinutes(loginMinute);
 
         const curDate = new Date();
@@ -364,6 +369,81 @@ function LandingDashboard() {
     const switchFun = () => {
         navigate(`/empDashboard`, { state })
     }
+
+    const [meetingList, setMeetingList] = useState([])
+    const [ticketList, setTicketList] = useState([])
+    useEffect(() => {
+        if (!state || !state.emp_id) return; // Ensure state and emp_id are available
+
+        const fetchMeetingList = async () => {
+            try {
+                const result = await axios.get('http://localhost:8081/getMeeting');
+                setMeetingList(result.data);
+            } catch (error) {
+                console.error("Error while getting meetings data:", error);
+                // console.log("Eorror @@@@@@@@@@@@@@@@@@@@@");
+            }
+        };
+
+
+
+        fetchMeetingList();
+
+
+    }, [state]);
+
+    const upcomingMeetings = meetingList
+        .filter((f) => new Date(f.mDate) >= new Date(currentDate))
+        .filter((f) => f.empList.includes(state.emp_id)); // Filter only meetings the employee is included in
+
+    upcomingMeetings.sort((a, b) => new Date(a.mDate) - new Date(b.mDate));
+
+    const lastMeeting = upcomingMeetings.length > 0 ? upcomingMeetings[upcomingMeetings.length - 1] : null;
+
+
+    useEffect(() => {
+        const fetchTickets = async () => {
+            try {
+                console.log('Fetching tickets for emp_id:', state.emp_id);
+                const result = await axios.post('http://localhost:8081/getTicket', { emp_id: state.emp_id });
+                setTicketList(result.data);
+                console.log(result.data);
+            } catch (error) {
+                console.error("Error while getting tickets data:", error);
+
+            }
+        };
+        fetchTickets();
+    }, [state])
+
+    const [notifications, setNotifications] = useState([]);
+
+
+    useEffect(() => {
+        if (state.length === 0) return;
+        async function fetchNotifications() {
+            try {
+                const response = await fetch(`http://localhost:8081/notifications`);
+                const data = await response.json();
+                setNotifications(data);
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+            }
+        }
+
+        fetchNotifications();
+    }, [currentTime]);
+
+    // const [notificationList, setNotificationList] = useState([])
+    // useEffect(()=>{
+    //     try {
+    //         const response = await fetch(`http://localhost:8081/notifications`);
+    //     } catch (error) {
+            
+    //     }
+    // })
+
+
     return (
         <>
             <div className="landing-dashboard">
@@ -417,6 +497,63 @@ function LandingDashboard() {
                                     color: selected === 4 ? 'white' : ''
                                 }}>Policy</p>
                         </div>
+
+                       
+                            <div className="nav-2">
+                                <img src={logo} alt="" style={{ width: '190px', height: '50px' }} />
+                                <div className="menu-icon">
+                                    <i className="fa-solid fa-bars"></i>
+                                    <div className="nav-2-block">
+                                    <p tabindex="0"
+                                onClick={() => handleClick(0)}
+                                style={{
+                                    backgroundColor: selected === 0 ? 'orange' : '',
+                                    color: selected === 0 ? 'white' : ''
+                                }}
+                            >Home</p>
+
+                            {/* <p tabindex="0"
+                                onClick={() => handleClick(2)}
+                                style={{
+                                    backgroundColor: selected === 2 ? 'orange' : '',
+                                    color: selected === 2 ? 'white' : ''
+                                }}>Projects</p> */}
+
+                            <p tabindex="0"
+                                onClick={() => handleClick(1)}
+                                style={{
+                                    backgroundColor: selected === 1 ? 'orange' : '',
+                                    color: selected === 1 ? 'white' : ''
+                                }}
+                            > Leave</p>
+
+
+                            <p tabindex="0"
+                                onClick={() => handleClick(2)}
+                                style={{
+                                    backgroundColor: selected === 2 ? 'orange' : '',
+                                    color: selected === 2 ? 'white' : ''
+                                }}>Ticket</p>
+
+                            <p tabindex="0"
+                                onClick={() => handleClick(3)}
+                                style={{
+                                    backgroundColor: selected === 3 ? 'orange' : '',
+                                    color: selected === 3 ? 'white' : ''
+                                }}>Holidays</p>
+
+                            <p tabindex="0"
+                                onClick={() => handleClick(4)}
+                                style={{
+                                    backgroundColor: selected === 4 ? 'orange' : '',
+                                    color: selected === 4 ? 'white' : ''
+                                }}>Policy</p>
+                                    </div>
+                                </div>
+                            </div>
+                        
+
+
                         <div className='acc-div'>
                             {state.category === 'Employee & Admin' &&
                                 <><div className="switch-acc">
@@ -429,15 +566,48 @@ function LandingDashboard() {
                                     </div>
                                 </div></>
                             }
-                            <img src={sunIcon} alt="" style={{ width: '15px', height: '15px' }} />
-                            <p className='acc-line'>{currentDate.split('-').reverse().join('-')}</p>
-                            <p className='acc-line'>{currentTime}</p>
+                            <img id='sun' src={sunIcon} alt="" style={{ width: '15px', height: '15px' }} />
+                            <p id='date' className='acc-line'>{currentDate.split('-').reverse().join('-')}</p>
+                            <p id='time' className='acc-line'>{currentTime}</p>
 
                             {/* <div style={{ fontSize: '13px' }}>
                                 name <br />
                                 <span style={{ fontSize: '10px', color: 'rgba(0, 0, 0, 0.185)' }}>role</span>
                             </div> */}
-                            <div><i class="fa-solid fa-bell"></i></div>
+                            <div><i class="fa-solid fa-bell" onClick={e => {
+                                if (account_section_class !== 'hidden') {
+                                    setAccountSectionClass('hidden')
+                                }
+                                setNotificationClass('notification')
+                            }}></i></div>
+                            <div className={notification_class}>
+                                <div className="notification-heading block-heading">
+                                    <b style={{ fontSize: '20px', color: 'orange' }}> Notification</b>
+                                </div>
+                                <div className="notification-content" style={{ fontSize: '12px' }}>
+                                    {/* {empLeave.map((item) => (item.status !== 'Pending' ?
+                                        <div style={{ display: 'grid', gridTemplateColumns: '170px 40px', gap: '20px', padding: '10px', borderBottom: '1px solid rgba(0, 0, 0, 0.187' }}>
+                                            <p>
+                                                <b>HR</b> has {item.status} your leave Request
+
+                                            </p>
+                                            <p>{item.fromDate.slice(5)}</p>
+                                        </div> : ''))} */}
+
+                                        {
+                                            notifications?.filter(f=>f.emp_id===state.emp_id).reverse().map(item=>(
+                                                <div style={{ display: 'grid', gridTemplateColumns: '170px 40px', gap: '20px', padding: '10px', borderBottom: '1px solid rgba(0, 0, 0, 0.187' }}>
+                                                <p>
+                                                    {item.msg}
+    
+                                                </p>
+                                                <p>{item.createdAt.split('T')[0].slice(5)}</p>
+                                            </div>
+                                            ))
+                                        }
+                                </div>
+
+                            </div>
                             <div className="circle" onClick={e => setAccountSectionClass('account-section')}>
                                 <img src={userLogo} alt="" style={{ width: '100%', opacity: '.4' }} />
                             </div>
@@ -456,7 +626,7 @@ function LandingDashboard() {
                                     <h3>:</h3>
                                     <p>{state.designation}</p>
                                 </div>
-                                <button onClick={e=>navigate('/')} style={{padding:'5px 10px',borderRadius:'5px'}}>Logout</button>
+                                <button onClick={e => navigate('/')} style={{ padding: '5px 10px', borderRadius: '5px' }}>Logout</button>
 
                             </div>
                         </div>
@@ -464,26 +634,26 @@ function LandingDashboard() {
                     </div>
 
 
-                    <div className="all-section" onClick={e => { setAccountSectionClass('hidden'); setSwitchAccClass('hidden') }}>
+                    <div className="all-section" onClick={e => { setAccountSectionClass('hidden'); setNotificationClass('hidden'); setSwitchAccClass('hidden') }}>
                         <div className={displayValue[0]}>
 
                             <div className="landing-section" >
                                 <div className="landing-section-1">
                                     <div className="attendance-layout">
-                                        <p style={{ width: '100%', display: 'flex', }}> <span style={{ marginLeft: 'auto' }}><i class="fa-solid fa-up-right-and-down-left-from-center" onClick={e=>setAttendance_history_class('attendance-history')}></i></span> </p>
+                                        <p style={{ width: '100%', display: 'flex', }}> <span style={{ marginLeft: 'auto' }}><i class="fa-solid fa-up-right-and-down-left-from-center" onClick={e => setAttendance_history_class('attendance-history')}></i></span> </p>
                                         <h2>Attendance</h2>
-                                        <div className="time-duration" style={{ width: '70%' }}>
+                                        <div className="time-duration" >
                                             <CountdownTimer durationCompleted={duration} path_color='orange' />
-                                            <p>Working hours</p>
+                                            {/* <p>Working hours</p> */}
                                         </div>
                                         <div className="punch-time">
                                             <div className="punch-in">
-                                                <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.612)' }}>Punch in</p>
+                                                <p style={{ color: 'rgba(255, 255, 255, 0.612)' }}>Punch in</p>
                                                 {swipeInTime && <p>{swipeInTime}</p>}
 
                                             </div>
                                             <div className="punch-out">
-                                                <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.612)' }}>Punch out</p>
+                                                <p style={{ color: 'rgba(255, 255, 255, 0.612)' }}>Punch out</p>
                                                 {swipeOutTime && <p>{swipeOutTime}</p>}
                                             </div>
                                         </div>
@@ -497,7 +667,7 @@ function LandingDashboard() {
                                 <div className="landing-section-2">
                                     <div className="greeting-layout">
                                         <div className="greeting-data">
-                                            <div><p style={{textTransform:'capitalize'}}>Hi, {state.name}</p>
+                                            <div><p style={{ textTransform: 'capitalize' }}>Hi, {state.name}</p>
                                                 <h2 >Good {greetingMSG}</h2>
                                                 <p style={{ color: '#26262659' }}>Have a good day</p></div>
                                         </div>
@@ -505,13 +675,16 @@ function LandingDashboard() {
                                             <img src={workLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                         </div>
 
+
+
                                     </div>
                                     <p style={{ padding: '10px 0', fontSize: '18px' }}><b>Quick Status</b></p>
                                     <div className='quick-status'>
                                         <div className='quick-status-container'>
                                             <div className='quick-status-content' >
                                                 <p className='headings'><b>Ticket Status</b></p>
-                                                <p className='data'>Ticket id IS#12345 is in progress</p>
+
+                                                {ticketList.length === 0 ? <p className='data'>You have not raise any Tickets.</p> : <p className='data'>Ticket id {ticketList[ticketList.length - 1]?.ticketId} is {ticketList[ticketList.length - 1]?.status === 'Pending' ? 'in progress' : 'Resolved'}. </p>}
                                             </div>
                                             <div className="half-circle">
                                                 <img src={circle2} alt="" style={{ width: '100%', height: '100%', borderRadius: '8px' }} />
@@ -522,8 +695,8 @@ function LandingDashboard() {
                                                 <p className='headings'><b>Leave Status</b></p>
                                                 {empLeave.length > 0 && (
                                                     <p className='data'>
-                                                        Your leave request applied on <br />
-                                                       <span style={{color:'orange'}}> {empLeave[empLeave.length - 1]?.date || empLeave[empLeave.length - 1]?.fromDate }</span> is <span>{empLeave[empLeave.length-1].status === 'Pending' ? 'in progress' : empLeave[empLeave.length-1].status }</span>.
+                                                        Your leave request applied on
+                                                        <span style={{ color: 'orange' }}> {empLeave[empLeave.length - 1]?.date || empLeave[empLeave.length - 1]?.fromDate}</span> is <span>{empLeave[empLeave.length - 1].status === 'Pending' ? 'in progress' : empLeave[empLeave.length - 1].status}</span>.
                                                     </p>
                                                 )}
                                             </div>
@@ -531,11 +704,11 @@ function LandingDashboard() {
                                                 <img src={circle2} alt="" style={{ width: '100%', height: '100%', borderRadius: '8px' }} />
                                             </div>
                                         </div>
-                                        <div className='quick-status-container'>
+                                        <div className='quick-status-container' id='holiday-quickStatus'>
                                             <div className='quick-status-content' >
                                                 <p className='headings'><b>Holiday</b></p>
-                                                <p style={{ color: 'orange' }}>{upcomingHoliday && upcomingHoliday.name} </p>
-                                                <p >{upcomingHoliday && ` on ${upcomingHoliday.date.split('-').reverse().join('-')}`}</p>
+                                                <p className='data'> <span style={{ color: 'orange' }}>{upcomingHoliday && upcomingHoliday.name}</span> {upcomingHoliday && ` on ${upcomingHoliday.date.split('-').reverse().join('-')}`}</p>
+                                                <p ></p>
                                             </div>
                                             <div className="half-circle">
                                                 <img src={circle2} alt="" style={{ width: '100%', height: '100%', borderRadius: '8px' }} />
@@ -544,7 +717,15 @@ function LandingDashboard() {
                                         <div className='quick-status-container'>
                                             <div className='quick-status-content' >
                                                 <p><b>Meeting</b></p>
-                                                <p className='data'>No meetings are scheduled.</p>
+                                                {lastMeeting ? (
+                                                    <div key={lastMeeting.meetingName}>
+                                                        <p className='data'>
+                                                            The <span style={{ color: 'orange' }}> {lastMeeting.mType}</span> is scheduled for {lastMeeting.mDate} at {lastMeeting.mTime} hrs.
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <p className="data">No meetings are scheduled.</p>
+                                                )}
                                             </div>
                                             <div className="half-circle">
                                                 <img src={circle2} alt="" style={{ width: '100%', height: '100%', borderRadius: '8px' }} />
@@ -574,13 +755,13 @@ function LandingDashboard() {
                                         <div className="leave-progress">
 
 
-                                            <LeaveProgressBar leaveData={leaveCollection} />
+                                            <LeaveProgressBar leaveData={leaveCollection} type='taken'/>
 
                                         </div>
                                         <p>
                                             <b>
-                                                { `${leaveCollection?.this_month_paidLeave?.length ?? 0} / ${2 + (leaveCollection?.earnedLeave??0)}`
-                                                    }
+                                                {`${leaveCollection?.this_month_paidLeave?.length ?? 0} / ${2 + (leaveCollection?.earnedLeave ?? 0)}`
+                                                }
                                             </b>
                                         </p>
                                         <button onClick={() => handleClick(5)}>Apply for leave</button>
@@ -589,7 +770,10 @@ function LandingDashboard() {
 
                                 </div>
 
+
                             </div>
+
+
                         </div>
                         {/* ------------------------------------------------ */}
                         <div className={displayValue[3]} style={{ width: '100%', padding: '20px', }}>
@@ -602,7 +786,7 @@ function LandingDashboard() {
                         </div>
 
                         <div className={displayValue[2]} style={{ width: '100%', padding: '20px', }}>
-                            <ApplyTicket state={state} cDate={currentDate}/>
+                            <ApplyTicket state={state} cDate={currentDate} />
                         </div>
 
                         <div className={displayValue[4]} style={{ width: '100%', height: 'inherit' }}>
@@ -610,22 +794,22 @@ function LandingDashboard() {
                         </div>
 
                         <div className={displayValue[5]} style={{ width: '100%', height: 'inherit' }}>
-                            <ApplyLeave state={state} empLeave={empLeave} handleClick={handleClick} cDate={currentDate} />
+                            <ApplyLeave state={state} empLeave={leaveCollection} handleClick={handleClick} cDate={currentDate} />
 
                         </div>
 
-                    {/* ----------------------------------------------------------------------------------------------------- */}
+                        {/* ----------------------------------------------------------------------------------------------------- */}
 
                         <div className={attendance_history_class}>
                             <div className="attendance-history-content">
-                                <button onClick={e=>setAttendance_history_class('attendance-history hidden')}>Back</button>
+                                <button onClick={e => setAttendance_history_class('attendance-history hidden')}>Back</button>
                                 <h2>Attendance</h2>
                                 <div className="table_body">
                                     <table>
                                         <thead>
                                             <tr>
-                                    
-                                                
+
+
                                                 <th>Date</th>
                                                 <th>Login Time</th>
                                                 <th>Duration</th>
@@ -634,27 +818,27 @@ function LandingDashboard() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {attendance && attendance.reverse().map((item,i)=>(
+                                            {attendance && attendance.reverse().map((item, i) => (
                                                 <tr key={i}>
                                                     <td>{item.date.split('-').reverse().join('-')}</td>
                                                     <td>{item.login}</td>
                                                     <td>{item.duration ? `${item.duration} hr` : '-'}</td>
-                                                    <td>{item.overTime ? item.overTime :'-' }</td>
+                                                    <td>{item.overTime ? item.overTime : '-'}</td>
                                                     <td>{item.logout ? item.logout : '-'}</td>
                                                 </tr>
                                             ))}
-                                            
+
                                         </tbody>
                                     </table>
                                 </div>
-                                
-                            
+
+
                             </div>
                         </div>
 
                     </div>
 
-                    
+
 
                 </div>
 

@@ -9,9 +9,9 @@ import CountdownTimer from './CountdownTimer';
 import LineProgressBar from './LineProgressBar';
 import LeaveProgressBar from './LeaveProgressBar';
 import { AppContext } from '../context/AppContext';
-import LeaveDashboard from './LeaveDashboard';
+
 import HolidaysList from './HolidaysList';
-import LeaveStatus from './LeaveStatus';
+
 import CompanyPolicy from './CompanyPolicy';
 import { useLocation } from 'react-router-dom';
 import EmployeeList from './EmployeeList';
@@ -91,14 +91,14 @@ function EmployeeDetails({ handleClick, state }) {
             })
             .catch(err => console.log(err));
 
-        axios.post('http://localhost:8081/getProgress', { emp_id: state.emp_id })
-            .then((result) => {
-                console.log(result.data);
-                setWeekProgress(result.data.week)
-                setMonthProgress(result.data.month)
-                setOverTimeProgress(result.data.overTime)
-            })
-            .catch(err => console.log(err));
+        // axios.post('http://localhost:8081/getProgress', { emp_id: state.emp_id })
+        //     .then((result) => {
+        //         console.log(result.data);
+        //         setWeekProgress(result.data.week)
+        //         setMonthProgress(result.data.month)
+        //         setOverTimeProgress(result.data.overTime)
+        //     })
+        //     .catch(err => console.log(err));
 
 
     }, [state]);
@@ -109,9 +109,10 @@ function EmployeeDetails({ handleClick, state }) {
 
 
     const [currentTime, setCurrentTime] = useState('');
-    let date = new Date();
-    let month = (date.getMonth() + 1) < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1);
-    let currentDate = date.getFullYear() + '-' + month + '-' + date.getDate();
+    const date = new Date();
+    let monthDate = (date.getMonth() + 1).toString().padStart(2, '0');
+    let dayDate = date.getDate().toString().padStart(2, '0');
+    let currentDate = `${date.getFullYear()}-${monthDate}-${dayDate}`;
 
     // useEffect(() => {
     //     let date = new Date();
@@ -135,6 +136,7 @@ function EmployeeDetails({ handleClick, state }) {
 
         return () => clearInterval(intervalId); // Cleanup on unmount
     }, []);
+    
 
     useEffect(() => {
         if (attendance.length > 0) {
@@ -239,7 +241,7 @@ function EmployeeDetails({ handleClick, state }) {
                 alert("Swipe Out Successfully")
                 setSwipeInBtn(true)
                 setSwipeOutTime(currentTime)
-                updateProgress()
+                // updateProgress()
             })
             .catch(err => console.log(err))
     }
@@ -304,6 +306,24 @@ function EmployeeDetails({ handleClick, state }) {
         calculateDuration();
     }, [swipeInTime, swipeOutTime, currentTime]);
 
+    function getWeekDates() {
+        const today = new Date();
+        const dayOfWeek = today.getDay(); // 0 (Sunday) to 6 (Saturday)
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Calculate Monday offset
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + mondayOffset);
+
+        const weekDates = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(monday);
+            date.setDate(monday.getDate() + i);
+            weekDates.push(formatDate(date));
+        }
+
+        return weekDates;
+    }
+
+
     function getMonthDates() {
         const today = new Date();
         const year = today.getFullYear();
@@ -331,6 +351,58 @@ function EmployeeDetails({ handleClick, state }) {
     const accountSection = () => {
         setAccountSectionClass('account-section')
     }
+    const calculateDurationInMinutes = (duration) => {
+        const [hours, minutes] = duration.split(':').map(Number);
+        return hours * 60 + minutes;
+      };
+
+      const [daysProgress, setDaysProgress] = useState({});
+
+      useEffect(() => {
+        if (attendance.length > 0) {
+          console.log(attendance);
+
+          const calculateDurationInMinutes = (duration) => {
+            const [hours, minutes] = duration.split(':').map(Number);
+            return hours * 60 + minutes;
+          };
+
+          const formatDuration = (totalMinutes) => {
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            return `${hours}:${minutes.toString().padStart(2, '0')}`;
+          };
+    
+          const weekDates = getWeekDates();
+          const weekAttendance = attendance.filter(item => weekDates.includes(item.date));
+          const weekTotalMinutes = weekAttendance.reduce((total, item) => {
+            const duration = calculateDurationInMinutes(item.duration);
+            return total + duration;
+          }, 0);
+          const weekTotalDuration = formatDuration(weekTotalMinutes);
+          console.log(`Week's total duration: ${weekTotalDuration}`);
+  
+          const monthDates = getMonthDates(); 
+          const monthAttendance = attendance.filter(item => monthDates.includes(item.date));
+          const monthTotalMinutes = monthAttendance.reduce((total, item) => {
+            const duration = calculateDurationInMinutes(item.duration!==""?item.duration : '0:0');
+            return total + duration;
+          }, 0);
+          const monthTotalDuration = formatDuration(monthTotalMinutes);
+          console.log(`Month's total duration: ${monthTotalDuration}`);
+
+          const monthOverTimeMinutes = monthAttendance.reduce((total, item) => {
+            const duration = calculateDurationInMinutes(item.overTime!==""?item.overTime : '0:0');
+            return total + duration;
+          }, 0);
+          const monthOverTimeDuration = formatDuration(monthOverTimeMinutes);
+    
+         
+          setDaysProgress({  weekTotalDuration, monthTotalDuration,monthOverTimeDuration });
+        }
+      }, [attendance]);
+
+    
     return (
         <>
             <div className="dashboard  ">
@@ -379,25 +451,25 @@ function EmployeeDetails({ handleClick, state }) {
                             <div className="week lineProgress">
                                 <div className='progress-content'>
                                     <p>This Week</p>
-                                    <p><b>{weekProgress}/45</b> hr</p>
+                                    <p><b>{daysProgress.weekTotalDuration}/45</b> hr</p>
                                 </div>
-                                <LineProgressBar completed={weekProgress} total={45} />
+                                <LineProgressBar completed={daysProgress?.weekTotalDuration} total={45} />
                             </div>
 
                             <div className="month lineProgress">
                                 <div className='progress-content'>
                                     <p> This Month</p>
-                                    <p><b>{monthProgress}/180</b> hr</p>
+                                    <p><b>{daysProgress?.monthTotalDuration}/180</b> hr</p>
                                 </div>
-                                <LineProgressBar completed={monthProgress} total={180} />
+                                <LineProgressBar completed={daysProgress?.monthTotalDuration} total={180} />
                             </div>
 
                             <div className="overTime lineProgress">
                                 <div className='progress-content'>
                                     <p>OverTime</p>
-                                    <p><b>{overTimeProgress}/20</b> hr</p>
+                                    <p><b>{daysProgress?.monthOverTimeDuration}/20</b> hr</p>
                                 </div>
-                                <LineProgressBar completed={overTimeProgress} total={20} />
+                                <LineProgressBar completed={daysProgress?.monthOverTimeDuration} total={20} />
                             </div>
 
                         </div>

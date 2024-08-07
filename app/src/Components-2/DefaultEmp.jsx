@@ -9,9 +9,9 @@ import CountdownTimer from './CountdownTimer';
 import LineProgressBar from './LineProgressBar';
 import LeaveProgressBar from './LeaveProgressBar';
 import { AppContext } from '../context/AppContext';
-import LeaveDashboard from './LeaveDashboard';
+
 import HolidaysList from './HolidaysList';
-import LeaveStatus from './LeaveStatus';
+
 import CompanyPolicy from './CompanyPolicy';
 import { useLocation } from 'react-router-dom';
 import EmployeeList from './EmployeeList';
@@ -69,7 +69,7 @@ function DefaultEmp({ handleClick, state }) {
         axios.get('http://localhost:8081/getUser')
             .then((result) => {
                 console.log('-----------------------------------------------------------------');
-                 console.log(result.data);
+                console.log(result.data);
                 setUser(result.data);
             })
             .catch(err => console.log(err));
@@ -113,9 +113,13 @@ function DefaultEmp({ handleClick, state }) {
 
 
     const [currentTime, setCurrentTime] = useState('');
-    let date = new Date();
-    let month = (date.getMonth() + 1) < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1);
-    let currentDate = date.getFullYear() + '-' + month + '-' + date.getDate();
+    // let date = new Date();
+    // let month = (date.getMonth() + 1) < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1);
+    // let currentDate = date.getFullYear() + '-' + month + '-' + date.getDate().padStart(2,0);
+    const date = new Date();
+    let monthDate = (date.getMonth() + 1).toString().padStart(2, '0');
+    let dayDate = date.getDate().toString().padStart(2, '0');
+    let currentDate = `${date.getFullYear()}-${monthDate}-${dayDate}`;
     const monthNames = [
         "Jan", "February", "Mar", "Apr", "May", "June",
         "July", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -266,14 +270,14 @@ function DefaultEmp({ handleClick, state }) {
         let m = Math.floor((num % (60 * 60)) / (60))
         return `${h}:${m}`
     }
-    const progressFun = (w, m, o) => {
-        axios.put('http://localhost:8081/updateProgress', { emp_id: state.emp_id, week: w, month: m, overTime: o })
-            .then((result) => {
-                console.log(result.data)
-            })
-            .catch(err => console.log(err))
+    // const progressFun = (w, m, o) => {
+    //     axios.put('http://localhost:8081/updateProgress', { emp_id: state.emp_id, week: w, month: m, overTime: o })
+    //         .then((result) => {
+    //             console.log(result.data)
+    //         })
+    //         .catch(err => console.log(err))
 
-    }
+    // }
     const updateProgress = () => {
         let [dHour, dMinute] = duration.split(':').map(Number)
         let todayHour, todayOverTime
@@ -296,11 +300,11 @@ function DefaultEmp({ handleClick, state }) {
         // console.log(totalMonthMs);
         // console.log(totalOverTimeMs);
 
-        let totalWeekHour = convertToHour(totalWeekMs)
-        let totalMonthHour = convertToHour(totalMonthMs)
-        let totalOverTimeHour = convertToHour(totalOverTimeMs)
-        console.log('updating progress--------------------------------');
-        progressFun(totalWeekHour, totalMonthHour, totalOverTimeHour)
+        // let totalWeekHour = convertToHour(totalWeekMs)
+        // let totalMonthHour = convertToHour(totalMonthMs)
+        // let totalOverTimeHour = convertToHour(totalOverTimeMs)
+        // console.log('updating progress--------------------------------');
+        // progressFun(totalWeekHour, totalMonthHour, totalOverTimeHour)
         // console.log(totalWeekHour);
         // console.log(totalMonthHour);
         // console.log(totalOverTimeHour);
@@ -408,17 +412,20 @@ function DefaultEmp({ handleClick, state }) {
 
     useEffect(() => {
         if (allEmpAttendance.length > 0) {
+            console.log(allEmpAttendance);
             const tPresent = allEmpAttendance.filter(item => currentDate === item.date);
             setTodayPresent(tPresent?.length ?? 0)
-            // console.log(tPresent);
+            console.log(tPresent);
             const wDates = getWeekDates();
+            console.log(wDates);
             const wPresent = allEmpAttendance.filter(item => wDates.includes(item.date));
-            // console.log(wPresent);
+            console.log(wPresent);
             setWeekPresent(wPresent?.length ?? 0)
 
             const mDates = getMonthDates()
+            console.log(mDates);
             const mPresent = allEmpAttendance.filter(item => mDates.includes(item.date));
-            //console.log(mPresent);
+            console.log(mPresent);
             setMonthPresent(mPresent?.length ?? 0)
 
             const pDates = getPreviousMonthDates()
@@ -429,10 +436,10 @@ function DefaultEmp({ handleClick, state }) {
         }
     }, [allEmpAttendance, currentDate]);
 
-   
+    
 
 
-// console.log(getMonthDates());
+    // console.log(getMonthDates());
 
     return (
         <>
@@ -471,7 +478,7 @@ function DefaultEmp({ handleClick, state }) {
                             <div className="today lineProgress">
                                 <div className='progress-content'>
                                     <p>Today</p>
-                                    <p><b>{(100* todayPresent / user.length).toFixed(1)}%</b> Emp</p>
+                                    <p><b>{(100 * todayPresent / user.length).toFixed(1)}%</b> Emp</p>
                                 </div>
                                 <PresentLineProgressBar completed={todayPresent} total={user?.length} getColor='#80debb' />
                                 {/* <LineProgressBar completed={todayPresent} total={user?.length} /> */}
@@ -480,7 +487,7 @@ function DefaultEmp({ handleClick, state }) {
                             <div className="week lineProgress">
                                 <div className='progress-content'>
                                     <p>This Week</p>
-                                    <p><b>{((100 * weekPresent)/(user.length * 5)).toFixed(1)}%</b> Emp</p>
+                                    <p><b>{((100 * weekPresent) / (user.length * 5)).toFixed(1)}%</b> Emp</p>
                                 </div>
                                 <PresentLineProgressBar completed={weekPresent} total={(user?.length) * 5} getColor='#fe532c' />
                             </div>
@@ -488,7 +495,7 @@ function DefaultEmp({ handleClick, state }) {
                             <div className="month lineProgress">
                                 <div className='progress-content'>
                                     <p> This Month</p>
-                                    <p><b>{( (100 * monthPresent)/(user.length * 5 * 4) ).toFixed(1)}%</b> Emp</p>
+                                    <p><b>{((100 * monthPresent) / (user.length * 5 * 4)).toFixed(1)}%</b> Emp</p>
                                 </div>
                                 <PresentLineProgressBar completed={monthPresent} total={(user?.length) * 5 * 4} getColor='#fdc98d' />
                             </div>
@@ -496,9 +503,9 @@ function DefaultEmp({ handleClick, state }) {
                             <div className="overTime lineProgress">
                                 <div className='progress-content'>
                                     <p>Previous Month</p>
-                                    <p><b>{( (100 * previousMonthPresent) / (user?.length * 5 * 4) ).toFixed(1)}%</b> Emp</p>
+                                    <p><b>{((100 * previousMonthPresent) / (user?.length * 5 * 4)).toFixed(1)}%</b> Emp</p>
                                 </div>
-                                <PresentLineProgressBar completed={previousMonthPresent} total={(user?.length) * 5 * 4} getColor='#1c85f1'  />
+                                <PresentLineProgressBar completed={previousMonthPresent} total={(user?.length) * 5 * 4} getColor='#1c85f1' />
 
                             </div>
 
@@ -521,14 +528,14 @@ function DefaultEmp({ handleClick, state }) {
                                         <h1></h1><p>Holiday</p>
                                     </div>
                                 </div> */}
-                                {(allEmpAttendance.filter(item=>item.date === currentDate))?.map(x=>(<div className='defaultTodayActivity'>
-                                    <p className='small light' style={{paddingLeft:'5px'}}>{user.find(i=>i.emp_id===x.emp_id)?.name} </p>
-                                    <div style={{lineHeight:'15px'}}>
+                                {(allEmpAttendance.filter(item => item.date === currentDate))?.map(x => (<div className='defaultTodayActivity'>
+                                    <p className='small light' style={{ paddingLeft: '5px' }}>{user.find(i => i.emp_id === x.emp_id)?.name} </p>
+                                    <div style={{ lineHeight: '15px' }}>
                                         <p className='small light'>Punch In at</p>
                                         <p className='small light'> {x.login}</p>
                                     </div>
-                                </div> ))}
-                                
+                                </div>))}
+
                             </div>
                         </div>
                     </div>
@@ -544,15 +551,15 @@ function DefaultEmp({ handleClick, state }) {
                                         <th>Date</th>
                                         <th>Punch In</th>
                                         <th>Punch Out</th>
-                                        
-                                        
+
+
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {allEmpAttendance.reverse().map((item, key) => (
                                         <tr key={key}>
                                             <td style={{ borderLeft: 'none' }}>{key + 1}</td>
-                                            <td>{(user.find(emp=>emp.emp_id===item.emp_id)?.name)}</td>
+                                            <td>{(user.find(emp => emp.emp_id === item.emp_id)?.name)}</td>
                                             <td>{item.emp_id}</td>
                                             <td>{item.date}</td>
                                             <td>{item.login}</td>
@@ -565,17 +572,17 @@ function DefaultEmp({ handleClick, state }) {
                         <div className=" daily-records">
                             <p className='block-heading'><b>Daily Records</b></p>
                             <div className="daily-records-block">
-                                {getMonthDates()?.filter(i=>i<=currentDate).reverse().map(d=>(
+                                {getMonthDates()?.filter(i => i <= currentDate).reverse().map(d => (
                                     <div className="bars-data">
-                                    <p>{d.slice(-2)}</p>
-                                    <div className="bars">
-                                        <PresentLineProgressBar completed={allEmpAttendance.filter(emp=>emp.date===d).length} total={user?.length} getColor='#80debb' getBaseBgColor=''/>
-                                        <PresentLineProgressBar completed={user?.length - allEmpAttendance.filter(emp=>emp.date===d).length} total={user?.length} getColor='#1c85f1' getBaseBgColor='' />
+                                        <p>{d.slice(-2)}</p>
+                                        <div className="bars">
+                                            <PresentLineProgressBar completed={allEmpAttendance.filter(emp => emp.date === d).length} total={user?.length} getColor='#80debb' getBaseBgColor='' />
+                                            <PresentLineProgressBar completed={user?.length - allEmpAttendance.filter(emp => emp.date === d).length} total={user?.length} getColor='#1c85f1' getBaseBgColor='' />
+                                        </div>
                                     </div>
-                                </div>
                                 ))}
                             </div>
-                            
+
                         </div>
                     </div>
                 </div>

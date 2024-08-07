@@ -86,10 +86,14 @@ function Home() {
     return (
         <>
             <div className="home">
+            <div className="logo">
+                            <img src={logo} alt="Not Found" />
+                        </div>
 
                 <div className="home-header">
                     <div className="part1">
-                        <h1>Employee Login</h1>
+                        <h2 >Employee Login</h2>
+                        
                         <div className="container">
                             <form action="">
 
@@ -97,6 +101,7 @@ function Home() {
 
                                 <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onClick={e => { setError('') }} />
                                 <div className="captcha">
+                                
                                     <label  >{generatedCaptcha} <span onClick={changeCaptcha}><img src="https://cdn-icons-png.flaticon.com/128/2805/2805355.png" alt="" style={{width:'20px',height:'20px',verticalAlign:'middle'}}/></span></label>
                                     
                                 </div>
@@ -109,7 +114,7 @@ function Home() {
                     </div>
 
 
-                    <div className="part2">
+                    {/* <div className="part2">
                         <div className="logo">
                             <img src={logo} alt="Not Found" />
                         </div>
@@ -128,7 +133,7 @@ function Home() {
                                 <button>Submit</button>
                             </form>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
             </div>
